@@ -17,8 +17,12 @@ dotenv.config({
 app.use(express.json());
 app.use(cors());
 app.use((request, response) => {
-  response.append("Access-Control-Allow-Origin", "*");
-  response.append("Access-Control-Allow-Methods", "DELETE, POST, GET, PATCH");
+  response.append(
+    "Access-Control-Allow-Methods",
+    "GET,HEAD,PUT,PATCH,POST,DELETE"
+  );
+  response.append("Access-Control-Allow-Headers", "Content-Type");
+  response.append("Access-Control-Allow-Credentials", true);
 });
 
 if (process.env.NODE_ENV === "development") app.use(morgan("dev"));
