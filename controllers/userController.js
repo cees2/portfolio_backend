@@ -65,8 +65,6 @@ exports.deleteUser = catchAsync(async (request, response, next) => {
 });
 
 exports.getMyTasks = catchAsync(async (request, response, next) => {
-  console.log("exec", request.user);
-  console.log("DSDSDSDSDS");
   const { tasks } = request.user;
   response.status(200).json({
     status: "success",

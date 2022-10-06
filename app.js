@@ -8,8 +8,6 @@ const rateLimit = require("express-rate-limit");
 const helmet = require("helmet");
 const mongoSanitize = require("express-mongo-sanitize");
 const xss = require("xss-clean");
-const hpp = require("hpp");
-
 const userRouter = require("./routes/userRoutes");
 const taskRouter = require("./routes/taskRoutes");
 
@@ -20,12 +18,11 @@ app.use(xss());
 
 app.use(helmet());
 
-const rateLimit = {
+const limiter = rateLimit({
   max: 100,
   windowMs: 30 * 60 * 1000,
   message: "Too many requests.",
-};
-
+});
 app.use("/api", limiter);
 
 dotenv.config({
@@ -46,10 +43,6 @@ app.use((request, response, next) => {
 });
 
 if (process.env.NODE_ENV === "development") app.use(morgan("dev"));
-
-app.get("/", (request, response) => {
-  response.status(200).json("Hello from the middleware");
-});
 
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/tasks", taskRouter);

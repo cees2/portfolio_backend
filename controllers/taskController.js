@@ -8,7 +8,6 @@ exports.getUserTasks = catchAsync(async (request, response, next) => {
 
   const user = await User.findById(userId);
 
-  console.log(user.tasks);
   const tasks = user.tasks;
 
   response.status(200).json({
