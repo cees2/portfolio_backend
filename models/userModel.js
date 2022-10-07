@@ -58,6 +58,10 @@ userSchema.pre("save", async function (next) {
   next();
 });
 
+userSchema.post("save", async function () {
+  this.password = null;
+});
+
 userSchema.methods.comparePasswords = async function (
   recievedPassword,
   passwordFromDB

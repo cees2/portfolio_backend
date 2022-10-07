@@ -11,10 +11,12 @@ const {
 const {
   getUser,
   getAllUsers,
-  deleteMe,
   updateUser,
   deleteUser,
   getMyTasks,
+  deleteMe,
+  changeMyPassword,
+  changeMyEmail,
 } = require("../controllers/userController");
 
 const router = express.Router();
@@ -28,6 +30,8 @@ router.use(protect);
 
 router.get("/getMyTasks", getMyTasks);
 router.delete("/deleteMe", deleteMe);
+router.patch("/changeMyEmail", changeMyEmail);
+router.patch("/changeMyPassword", changeMyPassword);
 
 router.use(restrictTo("admin"));
 

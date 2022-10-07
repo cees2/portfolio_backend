@@ -28,15 +28,6 @@ exports.getAllUsers = catchAsync(async (request, response, next) => {
   });
 });
 
-exports.deleteMe = catchAsync(async (request, response, next) => {
-  await User.findByIdAndDelete(request.user.id);
-
-  response.status(204).json({
-    status: "success",
-    data: null,
-  });
-});
-
 exports.updateUser = catchAsync(async (request, response, next) => {
   const { userId } = request.params;
 
@@ -55,7 +46,6 @@ exports.updateUser = catchAsync(async (request, response, next) => {
 
 exports.deleteUser = catchAsync(async (request, response, next) => {
   const { userId } = request.params;
-
   await User.findByIdAndDelete(userId);
 
   response.status(204).json({
@@ -71,5 +61,44 @@ exports.getMyTasks = catchAsync(async (request, response, next) => {
     data: {
       tasks,
     },
+  });
+});
+
+exports.changeMyPassword = catchAsync(async (request, response, next) => {
+  const { oldPassword, newPassword, passwordConfirm } = request.body;
+  const { id: userId } = request.user;
+
+  const user = await User.findById(userId).select("+password");
+
+  if (oldPassword === newPassword)
+    return next(new AppError("Provided passwords are the same", 400));
+
+  if (!(await request.user.comparePasswords(oldPassword, user.password)))
+    return next(new AppError("Incorrect password", 401));
+
+  user.password = newPassword;
+  user.passwordConfirm = passwordConfirm;
+
+  const updatedUser = await user.save();
+
+  console.log("updatedUser:", updatedUser);
+
+  response.json({
+    staus: "success",
+    message: "Password has been successfuly changed",
+    data: {
+      updatedUser,
+    },
+  });
+});
+
+exports.changeMyEmail = catchAsync(async (request, response, next) => {});
+
+exports.deleteMe = catchAsync(async (request, response, next) => {
+  await User.findByIdAndDelete(request.user.id);
+
+  response.status(204).json({
+    status: "success",
+    data: null,
   });
 });
