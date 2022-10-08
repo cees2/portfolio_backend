@@ -1,6 +1,7 @@
 const User = require("../models/userModel");
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
+const validator = require("validator");
 
 exports.getUser = catchAsync(async (request, response, next) => {
   const { userId: id } = request.params;
@@ -64,14 +65,59 @@ exports.getMyTasks = catchAsync(async (request, response, next) => {
   });
 });
 
+exports.changeMyEmail = catchAsync(async (request, response, next) => {
+  const { newEmail, emailConfirm, password } = request.body;
+  const { email: curEmail, id } = request.user;
+
+  if (curEmail === newEmail)
+    return next(
+      new AppError("New email can not be the same as the old one.", 400)
+    );
+
+  const userWithThatEmail = await User.findOne({ email: newEmail });
+
+  if (userWithThatEmail)
+    return next(new AppError("User with this email already exists.", 400));
+
+  if (newEmail !== emailConfirm)
+    return next(new AppError("Confirmed email does not match new one.", 400));
+
+  const user = await User.findById(id).select("+password");
+
+  if (!(await request.user.comparePasswords(password, user.password)))
+    return next(new AppError("Incorrect password", 401));
+
+  if (!validator.isEmail(newEmail))
+    return next(new AppError("Provide a correct email.", 400));
+
+  user.email = newEmail;
+
+  const updatedUser = await user.save({
+    validateBeforeSave: false,
+  });
+
+  response.status(200).json({
+    status: "success",
+    message: "Email has been successfuly changed",
+    data: {
+      updatedUser,
+    },
+  });
+});
+
 exports.changeMyPassword = catchAsync(async (request, response, next) => {
   const { oldPassword, newPassword, passwordConfirm } = request.body;
   const { id: userId } = request.user;
 
-  const user = await User.findById(userId).select("+password");
-
   if (oldPassword === newPassword)
     return next(new AppError("Provided passwords are the same", 400));
+
+  if (newPassword !== passwordConfirm)
+    return next(
+      new AppError("Confirmed password does not match new one.", 400)
+    );
+
+  const user = await User.findById(userId).select("+password");
 
   if (!(await request.user.comparePasswords(oldPassword, user.password)))
     return next(new AppError("Incorrect password", 401));
@@ -80,8 +126,6 @@ exports.changeMyPassword = catchAsync(async (request, response, next) => {
   user.passwordConfirm = passwordConfirm;
 
   const updatedUser = await user.save();
-
-  console.log("updatedUser:", updatedUser);
 
   response.json({
     staus: "success",
@@ -92,13 +136,17 @@ exports.changeMyPassword = catchAsync(async (request, response, next) => {
   });
 });
 
-exports.changeMyEmail = catchAsync(async (request, response, next) => {});
-
 exports.deleteMe = catchAsync(async (request, response, next) => {
+  const { password } = request.body;
+
+  const user = await User.findById(request.user.id).select("+password");
+
+  if (!(await request.user.comparePasswords(password, user.password)))
+    return next(new AppError("Incorrect password", 401));
+
   await User.findByIdAndDelete(request.user.id);
 
   response.status(204).json({
     status: "success",
-    data: null,
   });
 });
