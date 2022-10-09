@@ -46,8 +46,9 @@ const userSchema = new mongoose.Schema({
 });
 
 userSchema.pre("save", function (next) {
-  this.dateCreated = new Date();
   this.name = `${this.name.slice(0, 1).toUpperCase()}${this.name.slice(1)}`;
+  if (!this.isModified("dateCreated")) return next();
+  this.dateCreated = new Date();
   next();
 });
 

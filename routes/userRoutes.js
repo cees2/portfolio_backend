@@ -17,6 +17,7 @@ const {
   deleteMe,
   changeMyPassword,
   changeMyEmail,
+  changeMyName,
 } = require("../controllers/userController");
 
 const router = express.Router();
@@ -32,6 +33,7 @@ router.get("/getMyTasks", getMyTasks);
 router.delete("/deleteMe", deleteMe);
 router.patch("/changeMyEmail", changeMyEmail);
 router.patch("/changeMyPassword", changeMyPassword);
+router.patch("/changeMyName", changeMyName);
 
 router.use(restrictTo("admin"));
 

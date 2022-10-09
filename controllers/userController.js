@@ -65,6 +65,30 @@ exports.getMyTasks = catchAsync(async (request, response, next) => {
   });
 });
 
+exports.changeMyName = catchAsync(async (request, response, next) => {
+  let { newName } = request.body;
+  const { id, name } = request.user;
+
+  if (newName.toUpperCase() === name.toUpperCase())
+    next(new AppError("New name can not be the same as old one.", 400));
+
+  newName = newName.slice(0, 1).toUpperCase() + newName.slice(1).toLowerCase();
+
+  const user = await User.findByIdAndUpdate(
+    id,
+    { name: newName },
+    { returnDocument: "after", runValidators: true }
+  );
+
+  response.status(200).json({
+    status: "success",
+    message: "Name has been successfuly changed",
+    data: {
+      user,
+    },
+  });
+});
+
 exports.changeMyEmail = catchAsync(async (request, response, next) => {
   const { newEmail, emailConfirm, password } = request.body;
   const { email: curEmail, id } = request.user;
@@ -90,11 +114,13 @@ exports.changeMyEmail = catchAsync(async (request, response, next) => {
   if (!validator.isEmail(newEmail))
     return next(new AppError("Provide a correct email.", 400));
 
-  user.email = newEmail;
-
-  const updatedUser = await user.save({
-    validateBeforeSave: false,
-  });
+  const updatedUser = await User.findByIdAndUpdate(
+    user.id,
+    {
+      email: newEmail,
+    },
+    { runValidators: true, returnDocument: "after" }
+  );
 
   response.status(200).json({
     status: "success",
@@ -106,10 +132,12 @@ exports.changeMyEmail = catchAsync(async (request, response, next) => {
 });
 
 exports.changeMyPassword = catchAsync(async (request, response, next) => {
-  const { oldPassword, newPassword, passwordConfirm } = request.body;
+  const { password, newPassword, passwordConfirm } = request.body;
   const { id: userId } = request.user;
 
-  if (oldPassword === newPassword)
+  console.log(password, newPassword, passwordConfirm);
+
+  if (password === newPassword)
     return next(new AppError("Provided passwords are the same", 400));
 
   if (newPassword !== passwordConfirm)
@@ -119,7 +147,9 @@ exports.changeMyPassword = catchAsync(async (request, response, next) => {
 
   const user = await User.findById(userId).select("+password");
 
-  if (!(await request.user.comparePasswords(oldPassword, user.password)))
+  console.log(password, user.password);
+
+  if (!(await request.user.comparePasswords(password, user.password)))
     return next(new AppError("Incorrect password", 401));
 
   user.password = newPassword;
