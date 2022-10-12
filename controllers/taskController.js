@@ -21,7 +21,6 @@ exports.getUserTasks = catchAsync(async (request, response, next) => {
 
 exports.getTask = catchAsync(async (request, response, next) => {
   const { taskId } = request.params;
-
   const task = await Task.findById(taskId);
 
   response.status(200).json({

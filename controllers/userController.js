@@ -135,8 +135,6 @@ exports.changeMyPassword = catchAsync(async (request, response, next) => {
   const { password, newPassword, passwordConfirm } = request.body;
   const { id: userId } = request.user;
 
-  console.log(password, newPassword, passwordConfirm);
-
   if (password === newPassword)
     return next(new AppError("Provided passwords are the same", 400));
 
@@ -146,8 +144,6 @@ exports.changeMyPassword = catchAsync(async (request, response, next) => {
     );
 
   const user = await User.findById(userId).select("+password");
-
-  console.log(password, user.password);
 
   if (!(await request.user.comparePasswords(password, user.password)))
     return next(new AppError("Incorrect password", 401));
