@@ -46,7 +46,6 @@ const userSchema = new mongoose.Schema({
 });
 
 userSchema.pre("save", function (next) {
-  console.log("executed");
   this.name = `${this.name.slice(0, 1).toUpperCase()}${this.name.slice(1)}`;
   this.dateCreated = new Date();
   next();
